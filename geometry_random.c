@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <SDL/SDL.h>
+#include <SDL/SDL_ttf.h>
 #include <math.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -7,6 +8,10 @@
 #define OFFSET_Y 400
      
 SDL_Surface *screen;
+SDL_Surface *text;
+SDL_Color text_color;
+SDL_Rect text_rect;
+TTF_Font *font;
 double x_1;
 double y_1;
 double x_2;
@@ -22,11 +27,13 @@ void draw_circle_point(double x1, double y1, double x2, double y2,
 		       double length, double deg, int times);
 void draw_polygon (double x_poly, double y_poly, double length_poly,
 		   double rotation_deg, int sizes);
+void draw_text(const char *d_text);
 void test_polygon();
 void test_circle();
 void test_parabolic();
 void test_triangle();
 void initialize_win();
+void initialize_ttf();
 
 
 //--------------------------------
@@ -110,7 +117,7 @@ int draw_parabolic(int x, int a, int b, int c, bool normal_direction, int offset
     y = a*(x*x) + b*x + c;
     y_prev = a*(x_prev*x_prev) + b*x_prev + c;
 
-    SDL_FillRect(screen,NULL,0);
+    //SDL_FillRect(screen,NULL,0);
     draw_polygon(x*x_expand+offset+offset_x, y+offset, 20, 0, 6);
 
     /*
@@ -183,9 +190,26 @@ void draw_polygon (double x_poly, double y_poly, double length_poly,
     SDL_Flip(screen);
 }
 
+void draw_text(const char *d_text) {
+    text = TTF_RenderUTF8_Solid(font, d_text, text_color);
+    SDL_BlitSurface(text, NULL, screen, &text_rect);
+    if (text_rect.y == 750) {
+	text_rect.y = 600;
+	SDL_Rect text_area = {0,600,500,168};
+	SDL_FillRect(screen, &text_area, SDL_MapRGB(screen->format, 0, 0, 0));
+        SDL_BlitSurface(text, NULL, screen, &text_rect);
+    }
+    text_rect.y += 25;
+    SDL_Flip(screen);
+    SDL_Delay(500);
+}
+
 void test_polygon() {
+    draw_text("polygons...");
+    
     for (int j = 0; j < 100; j++) {
-	SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0, 0, 0));
+	SDL_Rect polygon_rect = {0,0,1024,600};
+	SDL_FillRect(screen, &polygon_rect, SDL_MapRGB(screen->format, 0, 0, 0));
 	draw_polygon(x_1, y_1, 80+j, j, 5);
 	draw_polygon(x_1, y_1, 200-j, -j, 6);	
 	SDL_Delay(1);
@@ -193,6 +217,8 @@ void test_polygon() {
 }
 
 void test_circle() {
+    draw_text("circle...");
+
     double length_line;
     double deg = 1;
     int times = 3;
@@ -201,6 +227,8 @@ void test_circle() {
 }
 
 void test_parabolic() {
+    draw_text("parabola with polygons...");
+    
     int a = 1;                                                                            
     int b = -30;                                                                           
     int c = 0;
@@ -224,6 +252,8 @@ void test_parabolic() {
 }
 
 void test_triangle() {
+    draw_text("triangles..." );
+    
     double x_3 = 490;
     double y_3 = 320;
     for (int i = 0; i < 80; i++) {
@@ -247,16 +277,29 @@ void initialize_win() {
     screen = SDL_SetVideoMode( 1024, 768, 16, SDL_SWSURFACE|SDL_ANYFORMAT);
 }
 
+void initialize_ttf() {  
+    TTF_Init();
+    font = TTF_OpenFont("vga8.ttf",24);
+    text_color.b = 145;
+    text_color.g = 190;
+    text_color.r = 150;
+    text_rect.x = 20;
+    text_rect.y = 600;
+}
 int main () {
     initialize_win();
 
+    initialize_ttf();
     //-------------------
     
-    //test_polygon();
-    //test_circle();
+    test_polygon();
+    test_circle();
     test_parabolic();
-    //test_triangle();
-
+    test_triangle();
+    draw_text("testing 1");
+    draw_text("testing 2");
+    draw_text("testing 3");
+   
     //-------------------
 
     SDL_Flip(screen);
